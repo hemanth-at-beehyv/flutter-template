@@ -1,0 +1,7 @@
+{
+    "app_name": "Aplicación de plantilla",
+    "home_screen_title": "Lista de Usuarios",
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "retry": "Reintentar"
+  }
