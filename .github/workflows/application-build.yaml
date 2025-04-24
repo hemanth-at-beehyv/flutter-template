@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Build Flutter App for All Platforms
+    name: Build Flutter App for ${{ matrix.platform }}
     runs-on: ${{ matrix.runner }}
     
     strategy:
@@ -19,12 +19,20 @@ jobs:
         include:
           - platform: android
             runner: ubuntu-latest
+            build_command: "flutter build apk --release --build-name=1.0.${{ github.run_number }}"
+            artifact_path: "build/app/outputs/flutter-apk/app-release.apk"
           - platform: linux
             runner: ubuntu-latest
+            build_command: "flutter build linux --release --build-name=1.0.${{ github.run_number }}"
+            artifact_path: "build/linux/x64/release/bundle/"
           - platform: windows
             runner: windows-latest
+            build_command: "flutter build windows --release --build-name=1.0.${{ github.run_number }}"
+            artifact_path: "build/windows/runner/Release/"
           - platform: macos
             runner: macos-latest
+            build_command: "flutter build macos --release --build-name=1.0.${{ github.run_number }}"
+            artifact_path: "build/macos/Build/Products/Release/"
 
     steps:
       - name: Checkout Code
@@ -34,31 +42,25 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: 'stable'
-          channel: 'stable'
 
       - name: Install Dependencies
         run: flutter pub get
-
-      - name: Set Build Number
-        run: echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Enable Desktop (if needed)
         if: matrix.platform != 'android'
         run: flutter config --enable-${{ matrix.platform }}-desktop
 
       - name: Build Application
+        run: ${{ matrix.build_command }}
+
+      - name: Verify Build Output
         run: |
-          if [ "${{ matrix.platform }}" = "android" ]; then
-            flutter build apk --release --build-name=1.0.${{ env.BUILD_NUMBER }}
-          else
-            flutter build ${{ matrix.platform }} --release --build-name=1.0.${{ env.BUILD_NUMBER }}
-          fi
+          echo "Checking for artifacts at: ${{ matrix.artifact_path }}"
+          ls -la ${{ matrix.artifact_path }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.platform }}-build-${{ env.BUILD_NUMBER }}
-          path: |
-            ${{ format('build/{0}/', matrix.platform) }}
-            ${{ matrix.platform == 'android' && 'build/app/outputs/flutter-apk/app-release.apk' || '' }}
+          name: ${{ matrix.platform }}-build-${{ github.run_number }}
+          path: ${{ matrix.artifact_path }}
           if-no-files-found: warn
