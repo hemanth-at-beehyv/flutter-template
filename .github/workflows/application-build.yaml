@@ -70,9 +70,6 @@ jobs:
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.platform }}-build-${{ env.BUILD_NUMBER }}
+          name: build-${{ env.BUILD_NUMBER }}
           path: |
             build/app/outputs/flutter-apk/app-release.apk
-            build/linux/
-            build/macos/
-            build/windows/
