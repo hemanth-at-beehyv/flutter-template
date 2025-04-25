@@ -28,7 +28,9 @@ jobs:
           - os: ubuntu-latest
             arch: x64
             target: apk
-
+            version: 3.29.3
+            is-beta: false
+            
           # - os: ubuntu-latest
           #   arch: x64
           #   target: linux
@@ -41,19 +43,42 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache Flutter SDK
+        uses: actions/cache@v4
+        with:
+          path: flutter
+          key: flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-${{ github.ref_name }}
+          restore-keys: |
+            flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-
+            flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-
+            flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-
+
       - name: Setup Flutter SDK
         uses: ./.github/actions/setup/flutter
         with:
           os: ${{ matrix.os == 'ubuntu-latest' && 'linux' || matrix.os == 'windows-latest' && 'windows' || 'macos' }}
           arch: ${{ matrix.arch }}
-          version: 3.32.0-0.2.pre
-          is-beta: true
+          version: ${{ matrix.version }}
+          is-beta: ${{ matrix.is-beta }}
 
       - name: Show Flutter Version
         run: flutter --version
 
       - name: Run Flutter Doctor
         run: flutter doctor -v
+
+      - name: Cache Flutter pub packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+            build
+          key: flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.target }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-${{ github.ref_name }}
+          restore-keys: |
+            flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.target }}-
+            flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-
+            flutter-pub-${{ matrix.os }}-
 
       - name: Install the dependencies
         run: flutter pub get
@@ -62,3 +87,9 @@ jobs:
         run: |
           echo "Building target: ${{ matrix.target }}"
           flutter build ${{ matrix.target }} --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: flutter-build-${{ matrix.target }}-${{ matrix.os }}-${{ matrix.arch }}
+          path: build/app/outputs/flutter-apk/app-release.apk
