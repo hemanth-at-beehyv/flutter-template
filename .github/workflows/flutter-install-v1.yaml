@@ -8,15 +8,34 @@ on:
 
 jobs:
   install-flutter:
-    name: Setup Flutter on ${{ matrix.os }}
+    name: Setup Flutter & Build ${{ matrix.target }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        arch: [x64] # Extend later with arm64 if needed
+        arch: [x64]
+        target: [apk, windows, linux, macos, ios]
+
         include:
           - os: macos-latest
             arch: arm64
+            target: ios
+
+          - os: windows-latest
+            arch: x64
+            target: windows
+
+          - os: ubuntu-latest
+            arch: x64
+            target: apk
+
+          - os: ubuntu-latest
+            arch: x64
+            target: linux
+
+          - os: macos-latest
+            arch: x64
+            target: macos
 
     steps:
       - name: Checkout repository
@@ -35,3 +54,27 @@ jobs:
 
       - name: Run Flutter Doctor
         run: flutter doctor -v
+
+      - name: Build Flutter Target
+        run: |
+          case "${{ matrix.target }}" in
+            apk)
+              flutter build apk --release
+              ;;
+            ios)
+              flutter build ios --release
+              ;;
+            macos)
+              flutter build macos --release
+              ;;
+            windows)
+              flutter build windows --release
+              ;;
+            linux)
+              flutter build linux --release
+              ;;
+            *)
+              echo "Unknown build target: ${{ matrix.target }}"
+              exit 1
+              ;;
+          esac
