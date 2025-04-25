@@ -13,7 +13,7 @@ inputs:
     default: x64
 
   version:
-    description: Flutter version (e.g., 3.29.3)
+    description: Flutter version (e.g., 3.29.3, 3.32.0-0.2.pre)
     required: false
     default: stable
 
