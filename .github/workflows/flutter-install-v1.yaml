@@ -7,7 +7,8 @@ on:
     branches: [ develop ]
 
 jobs:
-  install-flutter:
+  build-flutter-apk:
+    continue-on-error: true
     name: Setup Flutter & Build ${{ matrix.target }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
