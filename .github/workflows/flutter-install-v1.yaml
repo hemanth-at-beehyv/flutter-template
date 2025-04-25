@@ -55,6 +55,9 @@ jobs:
       - name: Run Flutter Doctor
         run: flutter doctor -v
 
+      - name: Install the dependencies
+        run: flutter pub get
+
       - name: Build Flutter Target
         run: |
           case "${{ matrix.target }}" in
