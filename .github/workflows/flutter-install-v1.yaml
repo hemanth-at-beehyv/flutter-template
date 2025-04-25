@@ -58,26 +58,7 @@ jobs:
       - name: Install the dependencies
         run: flutter pub get
 
-      - name: Build Flutter Target
+      - name: Build for Target
         run: |
-          case "${{ matrix.target }}" in
-            apk)
-              flutter build apk --release
-              ;;
-            ios)
-              flutter build ios --release
-              ;;
-            macos)
-              flutter build macos --release
-              ;;
-            windows)
-              flutter build windows --release
-              ;;
-            linux)
-              flutter build linux --release
-              ;;
-            *)
-              echo "Unknown build target: ${{ matrix.target }}"
-              exit 1
-              ;;
-          esac
+          echo "Building target: ${{ matrix.target }}"
+          flutter build ${{ matrix.target }} --release
