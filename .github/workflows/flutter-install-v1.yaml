@@ -17,13 +17,13 @@ jobs:
         # target: [apk, windows, linux, macos, ios]
 
         include:
-          - os: macos-latest
-            arch: arm64
-            target: ios
+          # - os: macos-latest
+          #   arch: arm64
+          #   target: ios
 
-          - os: windows-latest
-            arch: x64
-            target: windows
+          # - os: windows-latest
+          #   arch: x64
+          #   target: windows
 
           - os: ubuntu-latest
             arch: x64
@@ -33,9 +33,9 @@ jobs:
           #   arch: x64
           #   target: linux
 
-          - os: macos-latest
-            arch: x64
-            target: macos
+          # - os: macos-latest
+          #   arch: x64
+          #   target: macos
 
     steps:
       - name: Checkout repository
