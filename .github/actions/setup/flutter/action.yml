@@ -78,6 +78,7 @@ runs:
     - name: Extract Flutter SDK
       shell: bash
       run: |
+        ls
         if [[ "$EXT" == "zip" ]]; then
           unzip -q flutter_sdk.zip
         else
