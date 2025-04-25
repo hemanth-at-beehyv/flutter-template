@@ -96,4 +96,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flutter-build-${{ matrix.target }}-${{ matrix.os }}-${{ matrix.arch }}
-          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 1
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+            build\windows\x64\runner\Release\*.exe
+            build/macos/Build/Products/Release/*.app
