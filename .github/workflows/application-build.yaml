@@ -1,6 +1,6 @@
 name: Build Flutter App
  
- on:
+on:
    push:
      branches:
        - main
@@ -8,68 +8,68 @@ name: Build Flutter App
      branches:
        - main
  
- jobs:
-   build:
-     name: Build Flutter App for All Platforms
-     runs-on: ubuntu-latest
- 
-     strategy:
-       matrix:
-         platform: [android, linux, macos, windows]
- 
-     steps:
-       # Checkout the repository
-       - name: Checkout Code
-         uses: actions/checkout@v3
- 
-       # Set up Flutter
-       - name: Set up Flutter
-         uses: subosito/flutter-action@v2
-         # with:
-         #   flutter-version: 'stable'
- 
-       # Install dependencies
-       - name: Install Dependencies
-         run: flutter pub get
- 
-       # Use GitHub Actions Build Number
-       - name: Set Build Number
-         id: vars
-         run: echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
- 
-       # Build APK for Android
-       - name: Build APK
-         if: matrix.platform == 'android'
-         run: flutter build apk --release --build-name=1.0.${{ env.BUILD_NUMBER }}
- 
-       # Build executable for Linux
-       - name: Build Linux Executable
-         if: matrix.platform == 'linux'
-         run: |
-           flutter config --enable-linux-desktop
-           flutter build linux --release --build-name=1.0.${{ env.BUILD_NUMBER }}
- 
-       # Build executable for macOS
-       - name: Build macOS Executable
-         if: matrix.platform == 'macos'
-         run: |
-           flutter config --enable-macos-desktop
-           flutter build macos --release --build-name=1.0.${{ env.BUILD_NUMBER }}
- 
-       # Build executable for Windows
-       - name: Build Windows Executable
-         if: matrix.platform == 'windows'
-         run: |
-           flutter config --enable-windows-desktop
-           flutter build windows --release --build-name=1.0.${{ env.BUILD_NUMBER }}
- 
-       # Rename and upload artifacts
-       - name: Upload Build Artifacts
-         uses: actions/upload-artifact@v3
-         with:
-           name: ${{ matrix.platform }}-build-${{ env.BUILD_NUMBER }}
-           path: |
-             build/app/outputs/flutter-apk/app-release.apk
-             build/linux/
-             build/macos/
-             build/windows/
+jobs:
+  build:
+    name: Build Flutter App for All Platforms
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        platform: [android, linux, macos, windows]
+
+    steps:
+      # Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Set up Flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        # with:
+        #   flutter-version: 'stable'
+
+      # Install dependencies
+      - name: Install Dependencies
+        run: flutter pub get
+
+      # Use GitHub Actions Build Number
+      - name: Set Build Number
+        id: vars
+        run: echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+
+      # Build APK for Android
+      - name: Build APK
+        if: matrix.platform == 'android'
+        run: flutter build apk --release --build-name=1.0.${{ env.BUILD_NUMBER }}
+
+      # Build executable for Linux
+      - name: Build Linux Executable
+        if: matrix.platform == 'linux'
+        run: |
+          flutter config --enable-linux-desktop
+          flutter build linux --release --build-name=1.0.${{ env.BUILD_NUMBER }}
+
+      # Build executable for macOS
+      - name: Build macOS Executable
+        if: matrix.platform == 'macos'
+        run: |
+          flutter config --enable-macos-desktop
+          flutter build macos --release --build-name=1.0.${{ env.BUILD_NUMBER }}
+
+      # Build executable for Windows
+      - name: Build Windows Executable
+        if: matrix.platform == 'windows'
+        run: |
+          flutter config --enable-windows-desktop
+          flutter build windows --release --build-name=1.0.${{ env.BUILD_NUMBER }}
+
+      # Rename and upload artifacts
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform }}-build-${{ env.BUILD_NUMBER }}
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/linux/
+            build/macos/
+            build/windows/
