@@ -1,0 +1,89 @@
+name: SonarQube Analysis
+description: Install SonarScanner CLI and run SonarQube analysis with optional extra arguments.
+
+inputs:
+  project-key:
+    description: SonarQube Project Key
+    required: true
+
+  organization:
+    description: SonarCloud Organization (optional for self-hosted SonarQube)
+    required: false
+    default: ''
+
+  host-url:
+    description: SonarQube Server URL (e.g., https://sonarcloud.io or your own SonarQube)
+    required: true
+
+  token:
+    description: SonarQube Token for authentication
+    required: true
+
+  sources:
+    description: Source folder(s) to scan (default is ".")
+    required: false
+    default: '.'
+
+  coverage-report-path:
+    description: Path to coverage report (optional)
+    required: false
+    default: ''
+
+  additional-args:
+    description: Additional sonar-scanner arguments
+    required: false
+    default: ''
+
+  os:
+    description: The OS where SonarScanner CLI will be installed. Options: linux, macos, windows
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install SonarScanner CLI
+      shell: bash
+      run: |
+        echo "Installing SonarScanner..."
+
+        # Install SonarScanner based on input OS
+        if [[ "${{ inputs.os }}" == "linux" ]]; then
+          curl -L -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+          unzip -q sonar-scanner.zip
+          echo "$(pwd)/sonar-scanner-5.0.1.3006-linux/bin" >> $GITHUB_PATH
+        elif [[ "${{ inputs.os }}" == "macos" ]]; then
+          brew install sonar-scanner || echo "Brew already installed sonar-scanner"
+        elif [[ "${{ inputs.os }}" == "windows" ]]; then
+          curl -L -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-windows.zip
+          unzip -q sonar-scanner.zip
+          echo "$(pwd)/sonar-scanner-5.0.1.3006-windows/bin" >> $GITHUB_PATH
+        else
+          echo "Unsupported OS: ${{ inputs.os }}"
+          exit 1
+        fi
+
+    - name: Run SonarQube Analysis
+      shell: bash
+      run: |
+        echo "Starting SonarQube analysis..."
+
+        SONAR_ARGS=""
+        
+        if [[ "${{ inputs.organization }}" != "" ]]; then
+          SONAR_ARGS="$SONAR_ARGS -Dsonar.organization=${{ inputs.organization }}"
+        fi
+
+        if [[ "${{ inputs.coverage-report-path }}" != "" ]]; then
+          SONAR_ARGS="$SONAR_ARGS -Dsonar.coverageReportPaths=${{ inputs.coverage-report-path }}"
+        fi
+
+        if [[ "${{ inputs.additional-args }}" != "" ]]; then
+          SONAR_ARGS="$SONAR_ARGS ${{ inputs.additional-args }}"
+        fi
+
+        sonar-scanner \
+          -Dsonar.projectKey=${{ inputs.project-key }} \
+          -Dsonar.sources=${{ inputs.sources }} \
+          -Dsonar.host.url=${{ inputs.host-url }} \
+          -Dsonar.login=${{ inputs.token }} \
+          $SONAR_ARGS
