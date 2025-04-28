@@ -97,7 +97,6 @@ jobs:
         if: contains(github.event.pull_request.labels.*.name, 'sonar')
         run: echo "Running because 'sonar' label is present"
 
-
       - name: Build for Target
         run: |
           echo "Building target: ${{ matrix.target }}"
