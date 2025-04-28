@@ -93,10 +93,6 @@ jobs:
       - name: Install the dependencies
         run: flutter pub get
 
-      - name: Run step if label is 'sonar'
-        if: contains(github.event.pull_request.labels.*.name, 'sonar')
-        run: echo "Running because 'sonar' label is present"
-
       - name: Build for Target
         run: |
           echo "Building target: ${{ matrix.target }}"
