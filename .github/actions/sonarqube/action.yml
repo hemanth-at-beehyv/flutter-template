@@ -5,10 +5,10 @@ inputs:
   os:
     description: Target OS (linux, macos, windows)
     required: false
-    default: linux
+    default: ubuntu-latest
 
   arch:
-    description: CPU architecture (x64, arm64, aarch64)
+    description: CPU architecture (x64, aarch64)
     required: false
     default: x64
 
@@ -52,20 +52,21 @@ runs:
           ARCH_SUFFIX="-aarch64"
         fi
 
-        # Prepare download URL
+        # Download SonarScanner
         FILE_NAME="sonar-scanner-cli-${VERSION}-${PLATFORM}${ARCH_SUFFIX}.${EXT}"
         DOWNLOAD_URL="https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/${FILE_NAME}"
 
-        echo "Downloading SonarScanner from: $DOWNLOAD_URL"
+        echo "Downloading from: $DOWNLOAD_URL"
         curl -fsSL -o sonar-scanner.${EXT} "$DOWNLOAD_URL"
 
-        echo "Extracting SonarScanner..."
+        # Extract
         INSTALL_DIR="$GITHUB_WORKSPACE/sonar-scanner"
         mkdir -p "$INSTALL_DIR"
         unzip -q sonar-scanner.${EXT} -d "$INSTALL_DIR"
 
-        # Add SonarScanner to PATH
+        # Set PATH for next steps
         SCANNER_BIN_DIR=$(find "$INSTALL_DIR" -type d -name "bin" | head -n 1)
+        echo "Adding $SCANNER_BIN_DIR to PATH"
         echo "$SCANNER_BIN_DIR" >> "$GITHUB_PATH"
 
     - name: Verify SonarScanner Installation
