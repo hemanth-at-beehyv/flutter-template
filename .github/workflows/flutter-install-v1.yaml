@@ -77,12 +77,6 @@ jobs:
           version: ${{ matrix.version }}
           is-beta: ${{ matrix.is-beta }}
 
-      - name: Show Flutter Version
-        run: flutter --version
-
-      - name: Run Flutter Doctor
-        run: flutter doctor -v
-
       - name: Cache Flutter pub packages
         uses: actions/cache@v4
         with:
@@ -98,6 +92,11 @@ jobs:
 
       - name: Install the dependencies
         run: flutter pub get
+
+      - name: Run step if label is 'sonar'
+        if: contains(github.event.pull_request.labels.*.name, 'sonar')
+        run: echo "Running because 'sonar' label is present"
+
 
       - name: Build for Target
         run: |
