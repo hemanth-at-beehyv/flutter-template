@@ -59,6 +59,7 @@ jobs:
             flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-
       
       - name: Add Flutter to PATH
+        shell: bash
         if: steps.cache-flutter.outputs.cache-hit == 'true'
         run: |
           if [[ "${{ runner.os }}" == "Windows" ]]; then
