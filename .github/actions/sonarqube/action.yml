@@ -13,9 +13,9 @@ inputs:
     default: x64
 
   version:
-    description: SonarScanner version (e.g., 5.0.1.3006)
+    description: SonarScanner version (e.g., 7.1.0.4889)
     required: false
-    default: 5.0.1.3006
+    default: 7.1.0.4889
 
 runs:
   using: composite
