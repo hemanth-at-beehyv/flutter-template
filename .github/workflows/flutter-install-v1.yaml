@@ -93,6 +93,15 @@ jobs:
       - name: Install the dependencies
         run: flutter pub get
 
+      - name: Run SonarQube Analysis
+        uses: ./.github/actions/sonarqube
+        with:
+          project-key: $GITHUB_REPOSITORY
+          host-url: 'https://sq.beehyv.com'
+          token: ${{ secrets.SONAR_TOKEN }}
+          os: ${ matrix.os }
+          additional-args: '-Dsonar.sources=lib'
+
       - name: Build for Target
         run: |
           echo "Building target: ${{ matrix.target }}"
