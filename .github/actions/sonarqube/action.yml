@@ -39,13 +39,12 @@ inputs:
     required: true
 
 runs:
-  using: composite
+  using: "composite"
   steps:
     - name: Cache SonarScanner CLI
       uses: actions/cache@v4
       with:
-        path: |
-          ${{ runner.tool_cache }}/sonar-scanner
+        path: ${{ runner.tool_cache }}/sonar-scanner
         key: sonar-scanner-${{ inputs.os }}-v5.0.1.3006-${{ runner.os }}-${{ github.ref }}
         restore-keys: |
           sonar-scanner-${{ inputs.os }}-v5.0.1.3006-${{ runner.os }}-
