@@ -1,22 +1,6 @@
 name: Setup SonarScanner
 description: Download and install SonarScanner CLI based on OS, architecture, and version
 
-inputs:
-  os:
-    description: Target OS (ubuntu-latest, windows-latest, macos-latest)
-    required: false
-    default: ubuntu-latest
-
-  arch:
-    description: CPU architecture (x64, aarch64)
-    required: false
-    default: x64
-
-  version:
-    description: SonarScanner version (e.g., 7.1.0.4889)
-    required: false
-    default: 7.1.0.4889
-
 runs:
   using: composite
   steps:
@@ -25,8 +9,8 @@ runs:
       run: |
         set -euo pipefail
 
-        OS="${{ inputs.os }}"
-        ARCH="${{ inputs.arch }}"
+        OS="${{ runner.os }}"         # Use GitHub's built-in runner OS variable
+        ARCH="${{ runner.arch }}"     # Use GitHub's built-in runner architecture variable
         VERSION="${{ inputs.version }}"
         EXT="zip"
 
@@ -35,11 +19,11 @@ runs:
         echo "SonarScanner Version: $VERSION"
 
         # Normalize OS
-        if [[ "$OS" == "ubuntu-latest" ]]; then
+        if [[ "$OS" == "Linux" ]]; then
           PLATFORM="linux"
-        elif [[ "$OS" == "windows-latest" ]]; then
+        elif [[ "$OS" == "Windows" ]]; then
           PLATFORM="windows"
-        elif [[ "$OS" == "macos-latest" ]]; then
+        elif [[ "$OS" == "macOS" ]]; then
           PLATFORM="macosx"
         else
           echo "Unsupported OS: $OS"
