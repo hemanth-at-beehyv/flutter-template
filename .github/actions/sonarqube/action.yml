@@ -3,7 +3,7 @@ description: Download and install SonarScanner CLI based on OS, architecture, an
 
 inputs:
   os:
-    description: Target OS (linux, macos, windows)
+    description: Target OS (ubuntu-latest, windows-latest, macos-latest)
     required: false
     default: ubuntu-latest
 
@@ -20,7 +20,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Setup and Install SonarScanner
+    - name: Download and Extract SonarScanner
       shell: bash
       run: |
         set -euo pipefail
@@ -34,7 +34,7 @@ runs:
         echo "Detected ARCH: $ARCH"
         echo "SonarScanner Version: $VERSION"
 
-        # Normalize OS names
+        # Normalize OS
         if [[ "$OS" == "ubuntu-latest" ]]; then
           PLATFORM="linux"
         elif [[ "$OS" == "windows-latest" ]]; then
@@ -46,28 +46,28 @@ runs:
           exit 1
         fi
 
-        # Determine architecture suffix
+        # Arch
         ARCH_SUFFIX="-x64"
         if [[ "$ARCH" == "aarch64" ]]; then
           ARCH_SUFFIX="-aarch64"
         fi
 
-        # Download SonarScanner
         FILE_NAME="sonar-scanner-cli-${VERSION}-${PLATFORM}${ARCH_SUFFIX}.${EXT}"
         DOWNLOAD_URL="https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/${FILE_NAME}"
 
         echo "Downloading from: $DOWNLOAD_URL"
         curl -fsSL -o sonar-scanner.${EXT} "$DOWNLOAD_URL"
 
-        # Extract
         INSTALL_DIR="$GITHUB_WORKSPACE/sonar-scanner"
         mkdir -p "$INSTALL_DIR"
         unzip -q sonar-scanner.${EXT} -d "$INSTALL_DIR"
 
-        # Set PATH for next steps
         SCANNER_BIN_DIR=$(find "$INSTALL_DIR" -type d -name "bin" | head -n 1)
         echo "Adding $SCANNER_BIN_DIR to PATH"
         echo "$SCANNER_BIN_DIR" >> "$GITHUB_PATH"
+
+        # Also export immediately for current shell session (important for Windows Bash)
+        export PATH="$SCANNER_BIN_DIR:$PATH"
 
     - name: Verify SonarScanner Installation
       shell: bash
