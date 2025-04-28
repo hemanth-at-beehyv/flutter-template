@@ -1,5 +1,5 @@
 name: Setup SonarScanner
-description: Download and install SonarScanner CLI based on OS, arch, and version
+description: Download and install SonarScanner CLI based on OS, architecture, and version
 
 inputs:
   os:
@@ -20,50 +20,56 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Generate, download, and extract SonarScanner
+    - name: Setup and Install SonarScanner
       shell: bash
       run: |
+        set -euo pipefail
+
         OS="${{ inputs.os }}"
         ARCH="${{ inputs.arch }}"
         VERSION="${{ inputs.version }}"
         EXT="zip"
 
-        # Set platform and architecture suffix
-        if [[ "$OS" == "linux" ]]; then
+        echo "Detected OS: $OS"
+        echo "Detected ARCH: $ARCH"
+        echo "SonarScanner Version: $VERSION"
+
+        # Normalize OS names
+        if [[ "$OS" == "ubuntu-latest" ]]; then
           PLATFORM="linux"
-          ARCH_SUFFIX="-x64"
-          if [[ "$ARCH" == "aarch64" ]]; then
-            ARCH_SUFFIX="-aarch64"
-          fi
-        elif [[ "$OS" == "macos" ]]; then
-          PLATFORM="macosx"
-          ARCH_SUFFIX="-x64"
-        elif [[ "$OS" == "windows" ]]; then
+        elif [[ "$OS" == "windows-latest" ]]; then
           PLATFORM="windows"
-          ARCH_SUFFIX="-x64"
+        elif [[ "$OS" == "macos-latest" ]]; then
+          PLATFORM="macosx"
         else
           echo "Unsupported OS: $OS"
           exit 1
         fi
 
+        # Determine architecture suffix
+        ARCH_SUFFIX="-x64"
+        if [[ "$ARCH" == "aarch64" ]]; then
+          ARCH_SUFFIX="-aarch64"
+        fi
+
+        # Prepare download URL
         FILE_NAME="sonar-scanner-cli-${VERSION}-${PLATFORM}${ARCH_SUFFIX}.${EXT}"
         DOWNLOAD_URL="https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/${FILE_NAME}"
 
-        echo "Downloading SonarScanner from $DOWNLOAD_URL"
-        curl -L -o sonar-scanner.${EXT} "$DOWNLOAD_URL"
+        echo "Downloading SonarScanner from: $DOWNLOAD_URL"
+        curl -fsSL -o sonar-scanner.${EXT} "$DOWNLOAD_URL"
 
         echo "Extracting SonarScanner..."
         INSTALL_DIR="$GITHUB_WORKSPACE/sonar-scanner"
         mkdir -p "$INSTALL_DIR"
+        unzip -q sonar-scanner.${EXT} -d "$INSTALL_DIR"
 
-        if [[ "$OS" == "windows" ]]; then
-          unzip -q sonar-scanner.zip -d "$INSTALL_DIR"
-        else
-          unzip -q sonar-scanner.zip -d "$INSTALL_DIR"
-        fi
+        # Add SonarScanner to PATH
+        SCANNER_BIN_DIR=$(find "$INSTALL_DIR" -type d -name "bin" | head -n 1)
+        echo "$SCANNER_BIN_DIR" >> "$GITHUB_PATH"
 
-        echo "$INSTALL_DIR/sonar-scanner-${VERSION}/bin" >> $GITHUB_PATH
-
-    - name: Verify SonarScanner installation
+    - name: Verify SonarScanner Installation
       shell: bash
-      run: sonar-scanner --version
+      run: |
+        echo "SonarScanner Version Installed:"
+        sonar-scanner --version
