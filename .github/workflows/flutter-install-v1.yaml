@@ -96,11 +96,11 @@ jobs:
       - name: Run SonarQube Analysis
         uses: ./.github/actions/sonarqube
         with:
+          os: ${ matrix.os }
+          arch: ${ matrix.arch }
+          token: ${{ secrets.SONAR_TOKEN }}
           project-key: $GITHUB_REPOSITORY
           host-url: 'https://sq.beehyv.com'
-          token: ${{ secrets.SONAR_TOKEN }}
-          os: ${ matrix.os }
-          additional-args: '-Dsonar.sources=lib'
 
       - name: Build for Target
         run: |

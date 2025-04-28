@@ -1,98 +1,97 @@
-name: SonarQube Analysis
-description: Install SonarScanner CLI and run SonarQube analysis with optional extra arguments.
-
+name: 'Setup SonarScanner'
+description: 'Downloads and installs SonarScanner CLI'
 inputs:
-  project-key:
-    description: SonarQube Project Key
-    required: true
-
-  organization:
-    description: SonarCloud Organization (optional for self-hosted SonarQube)
-    required: false
-    default: ''
-
-  host-url:
-    description: SonarQube Server URL (e.g., https://sonarcloud.io or your own SonarQube)
-    required: true
-
-  token:
-    description: SonarQube Token for authentication
-    required: true
-
-  sources:
-    description: Source folder(s) to scan (default is ".")
-    required: false
-    default: '.'
-
-  coverage-report-path:
-    description: Path to coverage report (optional)
-    required: false
-    default: ''
-
-  additional-args:
-    description: Additional sonar-scanner arguments
-    required: false
-    default: ''
-
   os:
-    description: The OS where SonarScanner CLI will be installed. Options: linux, macos, windows
+    description: 'Operating system (linux, macos, windows)'
     required: true
-
+    type: string
+    default: 'linux'
+    options:
+      - 'linux'
+      - 'macos'
+      - 'windows'
+  version:
+    description: 'SonarScanner version (e.g., 7.1.0.4889)'
+    required: true
+    type: string
+    default: 7.1.0.4889
+  arch:
+    description: 'CPU architecture (x64, arm64, aarch64)'
+    required: false
+    default: 'x64'
+    type: string
+    options:
+      - 'x64'
+      - 'arm64'
+      - 'aarch64'
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
-    - name: Cache SonarScanner CLI
-      uses: actions/cache@v4
-      with:
-        path: ${{ runner.tool_cache }}/sonar-scanner
-        key: sonar-scanner-${{ inputs.os }}-v5.0.1.3006-${{ runner.os }}-${{ github.ref }}
-        restore-keys: |
-          sonar-scanner-${{ inputs.os }}-v5.0.1.3006-${{ runner.os }}-
-          sonar-scanner-${{ inputs.os }}-
-
-    - name: Install SonarScanner CLI
+    - name: Determine SonarScanner URL and Filename
+      id: set_sonarscanner_url
       shell: bash
       run: |
-        echo "Installing SonarScanner..."
+        OS="${{ inputs.os }}"
+        VERSION="${{ inputs.version }}"
+        ARCH="${{ inputs.arch }}"
+        EXTENSION="zip"
 
-        # Install SonarScanner based on input OS
-        if [[ "${{ inputs.os }}" == "linux" ]]; then
-          curl -L -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
-          unzip -q sonar-scanner.zip
-          echo "$(pwd)/sonar-scanner-5.0.1.3006-linux/bin" >> $GITHUB_PATH
-        elif [[ "${{ inputs.os }}" == "macos" ]]; then
-          brew install sonar-scanner || echo "Brew already installed sonar-scanner"
-        elif [[ "${{ inputs.os }}" == "windows" ]]; then
-          curl -L -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-windows.zip
-          unzip -q sonar-scanner.zip
-          echo "$(pwd)/sonar-scanner-5.0.1.3006-windows/bin" >> $GITHUB_PATH
+        if [ "$OS" == "linux" ]; then
+          PLATFORM="linux"
+          if [ "$ARCH" == "aarch64" ]; then
+            ARCHITECTURE="-aarch64"
+          else
+            ARCHITECTURE="-x64"
+          fi
+        elif [ "$OS" == "macos" ]; then
+          PLATFORM="macosx"
+          ARCHITECTURE="-x64" #only x64 for macos
+        elif [ "$OS" == "windows" ]; then
+          PLATFORM="windows"
+          ARCHITECTURE="-x64"
+        fi
+
+        FILE_NAME="sonar-scanner-cli-${VERSION}-${PLATFORM}${ARCHITECTURE}.${EXTENSION}"
+        DOWNLOAD_URL="https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/${FILE_NAME}"
+
+        echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_OUTPUT
+        echo "FILE_NAME=$FILE_NAME" >> $GITHUB_OUTPUT
+        echo "INSTALL_DIR=/opt/sonar-scanner-${VERSION}" >> $GITHUB_OUTPUT #default
+        if [ "$OS" == "windows" ]; then
+          echo "INSTALL_DIR=C:\\sonar-scanner-${VERSION}" >> $GITHUB_OUTPUT
+        fi
+    - name: Download SonarScanner
+      shell: bash
+      run: |
+        echo "Downloading SonarScanner from ${{ steps.set_sonarscanner_url.outputs.DOWNLOAD_URL }}"
+        curl -L -o "${{ steps.set_sonarscanner_url.outputs.FILE_NAME }}"
+    - name: Extract SonarScanner
+      shell: bash
+      run: |
+        OS="${{ inputs.os }}"
+        FILE_NAME="${{ steps.set_sonarscanner_url.outputs.FILE_NAME }}"
+        INSTALL_DIR="${{ steps.set_sonarscanner_url.outputs.INSTALL_DIR }}"
+        echo "Extracting SonarScanner to $INSTALL_DIR"
+        mkdir -p "$INSTALL_DIR"
+        if [ "$OS" == "windows" ]; then
+          powershell -Command "Expand-Archive -Path '$FILE_NAME' -DestinationPath '$INSTALL_DIR'"
         else
-          echo "Unsupported OS: ${{ inputs.os }}"
-          exit 1
+          unzip -q "$FILE_NAME" -d "$INSTALL_DIR"
         fi
-
-    - name: Run SonarQube Analysis
+    - name: Add SonarScanner to PATH
       shell: bash
       run: |
-        echo "Starting SonarQube analysis..."
-
-        SONAR_ARGS=""
-        
-        if [[ "${{ inputs.organization }}" != "" ]]; then
-          SONAR_ARGS="$SONAR_ARGS -Dsonar.organization=${{ inputs.organization }}"
+        OS="${{ inputs.os }}"
+        INSTALL_DIR="${{ steps.set_sonarscanner_url.outputs.INSTALL_DIR }}"
+        echo "Adding SonarScanner to PATH"
+        if [ "$OS" == "windows" ]; then
+          echo "::add-path::$INSTALL_DIR"
+        else
+          echo "export PATH=$PATH:$INSTALL_DIR/sonar-scanner-${{ inputs.version }}/bin" >> $GITHUB_PATH
         fi
+    - name: Verify SonarScanner Installation
+      shell: bash
+      run: |
+        echo "Verifying SonarScanner installation..."
+        sonar-scanner -h
 
-        if [[ "${{ inputs.coverage-report-path }}" != "" ]]; then
-          SONAR_ARGS="$SONAR_ARGS -Dsonar.coverageReportPaths=${{ inputs.coverage-report-path }}"
-        fi
-
-        if [[ "${{ inputs.additional-args }}" != "" ]]; then
-          SONAR_ARGS="$SONAR_ARGS ${{ inputs.additional-args }}"
-        fi
-
-        sonar-scanner \
-          -Dsonar.projectKey=${{ inputs.project-key }} \
-          -Dsonar.sources=${{ inputs.sources }} \
-          -Dsonar.host.url=${{ inputs.host-url }} \
-          -Dsonar.login=${{ inputs.token }} \
-          $SONAR_ARGS
