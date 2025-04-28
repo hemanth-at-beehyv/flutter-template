@@ -60,7 +60,12 @@ jobs:
       
       - name: Add Flutter to PATH
         if: steps.cache-flutter.outputs.cache-hit == 'true'
-        run: echo "${{ github.workspace }}/flutter/bin" >> $GITHUB_PATH
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            echo "${{ github.workspace }}\\flutter\\bin" >> $GITHUB_PATH
+          else
+            echo "${{ github.workspace }}/flutter/bin" >> $GITHUB_PATH
+          fi
 
       - name: Setup Flutter SDK
         if: steps.cache-flutter.outputs.cache-hit != 'true'
