@@ -57,6 +57,10 @@ jobs:
             flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-
             flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-
             flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-
+      
+      - name: Add Flutter to PATH
+        if: steps.cache-flutter.outputs.cache-hit != 'true'
+        run: echo "${{ github.workspace }}/flutter/bin" >> $GITHUB_PATH
 
       - name: Setup Flutter SDK
         if: steps.cache-flutter.outputs.cache-hit != 'true'
