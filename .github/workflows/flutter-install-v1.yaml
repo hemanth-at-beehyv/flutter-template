@@ -2,9 +2,9 @@ name: v1 - Install Flutter on All OS
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop* ]
   pull_request:
-    branches: [ develop ]
+    branches: [ develop* ]
 
 jobs:
   build-flutter-apk:
