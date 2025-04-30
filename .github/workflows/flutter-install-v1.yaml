@@ -91,7 +91,7 @@ jobs:
       #       flutter-pub-${{ matrix.os }}-
 
       - name: Install Linux dependencies
-        if: matrix.target == "linux"
+        if: matrix.target == 'linux'
         run: |
           sudo apt update
           sudo apt install -y clang cmake ninja-build pkg-config libgtk-3-dev
