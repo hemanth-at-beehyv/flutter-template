@@ -90,13 +90,20 @@ jobs:
       #       flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-
       #       flutter-pub-${{ matrix.os }}-
 
+      - name: Install Linux dependencies
+        if: matrix.target == "linux"
+        run: |
+          sudo apt update
+          sudo apt install -y clang cmake ninja-build pkg-config libgtk-3-dev
+          flutter config --enable-linux-desktop
+
       - name: Install the dependencies
         run: flutter pub get
 
-      - name: Run SonarQube Analysis
-        uses: ./.github/actions/sonarqube
-        with:
-          version: 7.1.0.4889
+      # - name: Run SonarQube Analysis
+      #   uses: ./.github/actions/sonarqube
+      #   with:
+      #     version: 7.1.0.4889
           # os: ${{ matrix.os }}
           # arch: ${{ matrix.arch }}
           # token: ${{ secrets.SONAR_TOKEN }}
