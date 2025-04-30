@@ -124,3 +124,4 @@ jobs:
             build/app/outputs/flutter-apk/*.apk
             build\windows\x64\runner\Release\*.exe
             build/macos/Build/Products/Release/*.app
+            build/linux/x64/release/bundle/template
