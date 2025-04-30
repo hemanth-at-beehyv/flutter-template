@@ -47,26 +47,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache Flutter SDK
-        id: cache-flutter
-        uses: actions/cache@v4
-        with:
-          path: flutter
-          key: flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-${{ github.ref_name }}
-          restore-keys: |
-            flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-
-            flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-
-            flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-
+      # - name: Cache Flutter SDK
+      #   id: cache-flutter
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: flutter
+      #     key: flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-${{ github.ref_name }}
+      #     restore-keys: |
+      #       flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-
+      #       flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-
+      #       flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-
       
-      - name: Add Flutter to PATH
-        shell: bash
-        if: steps.cache-flutter.outputs.cache-hit == 'true'
-        run: |
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            echo "${{ github.workspace }}\\flutter\\bin" >> $GITHUB_PATH
-          else
-            echo "${{ github.workspace }}/flutter/bin" >> $GITHUB_PATH
-          fi
+      # - name: Add Flutter to PATH
+      #   shell: bash
+      #   if: steps.cache-flutter.outputs.cache-hit == 'true'
+      #   run: |
+      #     if [[ "${{ runner.os }}" == "Windows" ]]; then
+      #       echo "${{ github.workspace }}\\flutter\\bin" >> $GITHUB_PATH
+      #     else
+      #       echo "${{ github.workspace }}/flutter/bin" >> $GITHUB_PATH
+      #     fi
 
       - name: Setup Flutter SDK
         if: steps.cache-flutter.outputs.cache-hit != 'true'
@@ -77,18 +77,18 @@ jobs:
           version: ${{ matrix.version }}
           is-beta: ${{ matrix.is-beta }}
 
-      - name: Cache Flutter pub packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            .dart_tool
-            build
-          key: flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.target }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-${{ github.ref_name }}
-          restore-keys: |
-            flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.target }}-
-            flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-
-            flutter-pub-${{ matrix.os }}-
+      # - name: Cache Flutter pub packages
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.pub-cache
+      #       .dart_tool
+      #       build
+      #     key: flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.target }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-${{ github.ref_name }}
+      #     restore-keys: |
+      #       flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.target }}-
+      #       flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-
+      #       flutter-pub-${{ matrix.os }}-
 
       - name: Install the dependencies
         run: flutter pub get
