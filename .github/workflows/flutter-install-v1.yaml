@@ -95,7 +95,8 @@ jobs:
 
       - name: Run SonarQube Analysis
         uses: ./.github/actions/sonarqube
-        # with:
+        with:
+          version: 7.1.0.4889
           # os: ${{ matrix.os }}
           # arch: ${{ matrix.arch }}
           # token: ${{ secrets.SONAR_TOKEN }}

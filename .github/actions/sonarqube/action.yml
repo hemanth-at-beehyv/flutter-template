@@ -1,6 +1,12 @@
 name: Setup SonarScanner
 description: Download and install SonarScanner CLI based on OS, architecture, and version
 
+inputs:
+  version:
+    description: Sonar-scanner-cli version (e.g., 7.1.0.4889)
+    required: false
+    default: 7.1.0.4889
+
 runs:
   using: composite
   steps:
@@ -31,12 +37,12 @@ runs:
         fi
 
         # Arch
-        ARCH_SUFFIX="-x64"
+        ARCH_SUFFIX="x64"
         if [[ "$ARCH" == "aarch64" ]]; then
           ARCH_SUFFIX="-aarch64"
         fi
 
-        FILE_NAME="sonar-scanner-cli-${VERSION}-${PLATFORM}${ARCH_SUFFIX}.${EXT}"
+        FILE_NAME="sonar-scanner-cli-${VERSION}-${PLATFORM}-${ARCH_SUFFIX}.${EXT}"
         DOWNLOAD_URL="https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/${FILE_NAME}"
 
         echo "Downloading from: $DOWNLOAD_URL"
