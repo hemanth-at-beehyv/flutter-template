@@ -93,15 +93,14 @@ jobs:
       - name: Install the dependencies
         run: flutter pub get
 
-      - name: Run SonarQube Analysis
-        uses: ./.github/actions/sonarqube
-        with:
-          version: 7.1.0.4889
-          # os: ${{ matrix.os }}
-          # arch: ${{ matrix.arch }}
-          # token: ${{ secrets.SONAR_TOKEN }}
-          # project-key: $GITHUB_REPOSITORY
-          # host-url: 'https://sq.beehyv.com'
+      - name: Run Flutter Tests
+        run: |
+          echo "Running tests for target: ${{ matrix.target }}"
+          if [[ "${{ matrix.target }}" == "apk" ]]; then
+            flutter test --coverage
+          else
+            flutter test
+          fi
 
       - name: Build for Target
         run: |
