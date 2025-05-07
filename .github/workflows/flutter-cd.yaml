@@ -1,4 +1,4 @@
-name: v1 - Install Flutter on All OS
+name: Flutter CD pipeline on All OS
 
 on:
   push:
