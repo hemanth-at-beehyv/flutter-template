@@ -1,0 +1,66 @@
+name: Setup SonarScanner
+description: Download and install SonarScanner CLI based on OS, architecture, and version
+
+inputs:
+  version:
+    description: Sonar-scanner-cli version (e.g., 7.1.0.4889)
+    required: false
+    default: 7.1.0.4889
+
+runs:
+  using: composite
+  steps:
+    - name: Download and Extract SonarScanner
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        OS="${{ runner.os }}"         # Use GitHub's built-in runner OS variable
+        ARCH="${{ runner.arch }}"     # Use GitHub's built-in runner architecture variable
+        VERSION="${{ inputs.version }}"
+        EXT="zip"
+
+        echo "Detected OS: $OS"
+        echo "Detected ARCH: $ARCH"
+        echo "SonarScanner Version: $VERSION"
+
+        # Normalize OS
+        if [[ "$OS" == "Linux" ]]; then
+          PLATFORM="linux"
+        elif [[ "$OS" == "Windows" ]]; then
+          PLATFORM="windows"
+        elif [[ "$OS" == "macOS" ]]; then
+          PLATFORM="macosx"
+        else
+          echo "Unsupported OS: $OS"
+          exit 1
+        fi
+
+        # Arch
+        ARCH_SUFFIX="x64"
+        if [[ "$ARCH" == "aarch64" ]]; then
+          ARCH_SUFFIX="-aarch64"
+        fi
+
+        FILE_NAME="sonar-scanner-cli-${VERSION}-${PLATFORM}-${ARCH_SUFFIX}.${EXT}"
+        DOWNLOAD_URL="https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/${FILE_NAME}"
+
+        echo "Downloading from: $DOWNLOAD_URL"
+        curl -fsSL -o sonar-scanner.${EXT} "$DOWNLOAD_URL"
+
+        INSTALL_DIR="$GITHUB_WORKSPACE/sonar-scanner"
+        mkdir -p "$INSTALL_DIR"
+        unzip -q sonar-scanner.${EXT} -d "$INSTALL_DIR"
+
+        SCANNER_BIN_DIR=$(find "$INSTALL_DIR" -type d -name "bin" | head -n 1)
+        echo "Adding $SCANNER_BIN_DIR to PATH"
+        echo "$SCANNER_BIN_DIR" >> "$GITHUB_PATH"
+
+        # Also export immediately for current shell session (important for Windows Bash)
+        export PATH="$SCANNER_BIN_DIR:$PATH"
+
+    - name: Verify SonarScanner Installation
+      shell: bash
+      run: |
+        echo "SonarScanner Version Installed:"
+        sonar-scanner --version

@@ -1,0 +1,7 @@
+{
+    "app_name": "Template App",
+    "home_screen_title": "Users List",
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "retry": "Retry"
+  }

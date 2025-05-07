@@ -1,0 +1,126 @@
+name: Flutter CD pipeline on All OS
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build-flutter-apk:
+    continue-on-error: true
+    name: Setup Flutter & Build ${{ matrix.target }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # os: [ubuntu-latest, windows-latest, macos-latest]
+        # arch: [x64]
+        # target: [apk, windows, linux, macos, ios]
+
+        include:
+          - os: macos-latest
+            arch: arm64
+            target: ios
+            version: 3.29.3
+            
+          - os: windows-latest
+            arch: x64
+            target: windows
+            version: 3.29.3
+
+          - os: ubuntu-latest
+            arch: x64
+            target: apk
+            version: 3.29.3
+            
+          - os: ubuntu-latest
+            arch: x64
+            target: linux
+            version: 3.29.3
+
+          - os: macos-latest
+            arch: x64
+            target: macos
+            version: 3.29.3
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache Flutter SDK
+        id: cache-flutter
+        uses: actions/cache@v4
+        with:
+          path: flutter
+          key: flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-${{ github.ref_name }}
+          restore-keys: |
+            flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-
+            flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-v${{ matrix.version }}-
+            flutter-sdk-${{ matrix.os }}-${{ matrix.arch }}-
+      
+      - name: Add Flutter to PATH
+        shell: bash
+        if: steps.cache-flutter.outputs.cache-hit == 'true'
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            echo "${{ github.workspace }}\\flutter\\bin" >> $GITHUB_PATH
+          else
+            echo "${{ github.workspace }}/flutter/bin" >> $GITHUB_PATH
+          fi
+
+      - name: Setup Flutter SDK
+        if: steps.cache-flutter.outputs.cache-hit != 'true'
+        uses: ./.github/actions/setup/flutter
+        with:
+          os: ${{ matrix.os == 'ubuntu-latest' && 'linux' || matrix.os == 'windows-latest' && 'windows' || 'macos' }}
+          arch: ${{ matrix.arch }}
+          version: ${{ matrix.version }}
+          is-beta: ${{ matrix.is-beta }}
+
+      - name: Cache Flutter pub packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+            build
+          key: flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.target }}-v${{ matrix.version }}-beta-${{ matrix.is-beta }}-${{ github.ref_name }}
+          restore-keys: |
+            flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.target }}-
+            flutter-pub-${{ matrix.os }}-${{ matrix.arch }}-
+            flutter-pub-${{ matrix.os }}-
+
+      - name: Install Linux dependencies
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt update
+          sudo apt install -y clang cmake ninja-build pkg-config libgtk-3-dev
+          flutter config --enable-linux-desktop
+
+      - name: Install the dependencies
+        run: flutter pub get
+
+      - name: Run Flutter Tests
+        shell: bash
+        run: |
+          echo "Running tests for target: ${{ matrix.target }}"
+          if [[ "${{ matrix.target }}" == "apk" ]]; then
+            flutter test --coverage
+          else
+            flutter test
+          fi
+
+      - name: Build for Target
+        run: |
+          echo "Building target: ${{ matrix.target }}"
+          flutter build ${{ matrix.target }} --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-build-${{ matrix.target }}-${{ matrix.os }}-${{ matrix.arch }}
+          retention-days: 1
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+            build\windows\x64\runner\Release\*.exe
+            build/macos/Build/Products/Release/*.app
