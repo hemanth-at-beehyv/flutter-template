@@ -94,6 +94,7 @@ jobs:
         run: flutter pub get
 
       - name: Run Flutter Tests
+        shell: bash
         run: |
           echo "Running tests for target: ${{ matrix.target }}"
           if [[ "${{ matrix.target }}" == "apk" ]]; then
